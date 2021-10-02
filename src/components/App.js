@@ -63,6 +63,7 @@ const WeatherWrapper = styled.div`
 
 class App extends React.Component {
   state = {
+    // isDataStored: false,
     value: '',
     weatherInfo: null,
     error: false,
@@ -114,7 +115,7 @@ class App extends React.Component {
           const currentDate = new Date();
           //console.log(currentDate);
           //console.log('.............');
-          //console.log(res1);
+          console.log(res1);
           const time = currentDate.toString().slice(16, 24);
           const date = `${days[currentDate.getDay()]} ${currentDate.getDate()} ${
             months[currentDate.getMonth()]
@@ -145,9 +146,13 @@ class App extends React.Component {
             time,
           };
           console.log(weatherInfo);
+          localStorage.setItem('localWeatherData', weatherInfo);
+          localStorage.setItem('isDataStored', true);
+
           this.setState({
             weatherInfo,
             error: false,
+            // isDataStored: true,
           });
         }),
       )
@@ -161,6 +166,11 @@ class App extends React.Component {
 
   render() {
     const { value, weatherInfo, error } = this.state;
+    const localWeatherData = localStorage.getItem('localWeatherData');
+    const isDataStored = localStorage.getItem('isDateStored');
+    console.log('1 :' + weatherInfo);
+    console.log('2 :' + localWeatherData);
+    console.log('3 :' + isDataStored);
     return (
       <>
         {/* <AppTitle showLabel={(weatherInfo || error) && true}>Weather appp</AppTitle> */}
@@ -176,15 +186,17 @@ class App extends React.Component {
             change={this.handleInputChange}
             submit={this.handleSearchCity}
           />
-          {weatherInfo && <Result weather={weatherInfo} />}
+          {(weatherInfo || isDataStored) && <Result weather={weatherInfo || localWeatherData} />}
           {error && <NotFound error={error} />}
         </WeatherWrapper>
       </>
     );
   }
   componentDidMount() {
-    const localValue = localStorage.getItem('value');
-    this.setState({ value: localValue });
+    //const localValue = localStorage.getItem('value');
+    //this.setState({ value: localValue });
+    //const localWeatherData = localStorage.getItem('localWeatherData');
+    //this.setState({ localWeatherData });
   }
 }
 
