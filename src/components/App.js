@@ -221,12 +221,6 @@ class App extends React.Component {
       </>
     );
   }
-  componentDidMount() {
-    //const localValue = localStorage.getItem('value');
-    //this.setState({ value: localValue });
-    //const localWeatherData = localStorage.getItem('localWeatherData');
-    //this.setState({ localWeatherData });
-  }
 }
 
 export default App;
