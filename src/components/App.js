@@ -77,18 +77,22 @@ class App extends React.Component {
 
   handleSearchCity = e => {
     e.preventDefault();
+    localStorage.clear();
     const { value } = this.state;
     localStorage.setItem('value', value);
 
-    const APIkey = 'fff52b3fc3996aa9a6cd2f21aeea9a58';
+    // Geocoding API: Convert between addresses and geographic coordinates
+    const geocodingAPIkey = 'AIzaSyCEykiqcs_JYhTw8pIBL5BGAwfdVWuLD6Y';
+    const getLocation = `https://maps.googleapis.com/maps/api/geocode/json?address=${value}&key=${geocodingAPIkey}`;
 
+    const APIkey = 'fff52b3fc3996aa9a6cd2f21aeea9a58';
     const weather = `https://api.openweathermap.org/data/2.5/weather?q=${value}&APPID=${APIkey}&units=metric`;
     const forecast = `https://api.openweathermap.org/data/2.5/forecast?q=${value}&APPID=${APIkey}&units=metric`;
 
     axios
-      .all([axios.get(weather), axios.get(forecast)])
+      .all([axios.get(weather), axios.get(getLocation), axios.get(forecast)])
       .then(
-        axios.spread((res1, res2) => {
+        axios.spread((resCurrent, resLocation, res3) => {
           const months = [
             'January',
             'February',
@@ -113,47 +117,63 @@ class App extends React.Component {
             'Saturday',
           ];
           const currentDate = new Date();
-          //console.log(currentDate);
-          //console.log('.............');
-          console.log(res1);
-          const time = currentDate.toString().slice(16, 24);
+          // console.log(resCurrent);
+          // console.log(resLocation);
           const date = `${days[currentDate.getDay()]} ${currentDate.getDate()} ${
             months[currentDate.getMonth()]
           }`;
+          const sunset = new Date(resCurrent.data.sys.sunset * 1000).toLocaleString().slice(12, 17);
+          const sunrise = new Date(resCurrent.data.sys.sunrise * 1000)
+            .toLocaleString()
+            .slice(12, 17);
 
-          const sunset = new Date(res1.data.sys.sunset * 1000).toLocaleString().slice(11, 17);
-          const sunrise = new Date(res1.data.sys.sunrise * 1000).toLocaleString().slice(11, 17);
+          const lat = resLocation.data.results[0].geometry.location.lat;
+          const lng = resLocation.data.results[0].geometry.location.lng;
+          const getWeather = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&appid=${APIkey}&units=metric`;
+          axios.get(getWeather).then(resForecast => {
+            const weatherInfo = {
+              city: resCurrent.data.name,
+              country: resCurrent.data.sys.country,
+              date,
+              description: resCurrent.data.weather[0].description,
+              main: resCurrent.data.weather[0].main,
+              icon: resCurrent.data.weather[0].icon,
+              temp: resCurrent.data.main.temp,
+              highestTemp: resCurrent.data.main.temp_max,
+              lowestTemp: resCurrent.data.main.temp_min,
+              feelsLikeTemp: resCurrent.data.main.feels_like,
+              sunrise,
+              sunset,
+              clouds: resCurrent.data.clouds.all,
+              humidity: resCurrent.data.main.humidity,
+              wind: resCurrent.data.wind.speed,
+              pressure: resCurrent.data.main.pressure,
+              visibility: resCurrent.data.visibility,
+              forecast: res3.data.list,
+              forecastMinutely: resForecast.data.minutely,
+              forecastHourly: resForecast.data.hourly,
+              forecastDaily: resForecast.data.daily,
+              //time,
+            };
+            // console.log('???', weatherInfo);
+            //console.log('weather', resForecast);
+            localStorage.setItem('localWeatherData', JSON.stringify(weatherInfo));
+            localStorage.setItem('isDataStored', true);
 
-          const weatherInfo = {
-            city: res1.data.name,
-            country: res1.data.sys.country,
-            date,
-            description: res1.data.weather[0].description,
-            main: res1.data.weather[0].main,
-            icon: res1.data.weather[0].icon,
-            temp: res1.data.main.temp,
-            highestTemp: res1.data.main.temp_max,
-            lowestTemp: res1.data.main.temp_min,
-            feelsLikeTemp: res1.data.main.feels_like,
-            sunrise,
-            sunset,
-            clouds: res1.data.clouds.all,
-            humidity: res1.data.main.humidity,
-            wind: res1.data.wind.speed,
-            pressure: res1.data.main.pressure,
-            visibility: res1.data.visibility,
-            forecast: res2.data.list,
-            time,
-          };
-          console.log(weatherInfo);
-          localStorage.setItem('localWeatherData', weatherInfo);
-          localStorage.setItem('isDataStored', true);
-
-          this.setState({
-            weatherInfo,
-            error: false,
-            // isDataStored: true,
+            this.setState({
+              weatherInfo,
+              error: false,
+              // isDataStored: true,
+            });
           });
+          //console.log('resForecast', lat);
+          // const googleGeoData = JSON.stringify(resForecast.data);
+          // console.log(googleGeoData.geometry.location);
+          // console.log('resForecast:' + resForecast.result);
+          //const time = currentDate.toString().slice(16, 24);
+
+          // console.log(weatherInfo);
+          // console.log(weatherInfo.main);
         }),
       )
       .catch(error => {
@@ -166,26 +186,35 @@ class App extends React.Component {
 
   render() {
     const { value, weatherInfo, error } = this.state;
-    const localWeatherData = localStorage.getItem('localWeatherData');
-    const isDataStored = localStorage.getItem('isDateStored');
-    console.log('1 :' + weatherInfo);
-    console.log('2 :' + localWeatherData);
-    console.log('3 :' + isDataStored);
+    // const localWeatherData = localStorage.getItem('localWeatherData');
+    const localWeatherData = JSON.parse(localStorage.getItem('localWeatherData') || '[]');
+    // console.log(localWeatherData);
+    // console.log(typeof localWeatherData);
+    // console.log(localWeatherData.length);
+    const isDataStored = localStorage.getItem('isDataStored');
+    // console.log('1 :' + weatherInfo);
+    // console.log(`2 :${localWeatherData.getLocation}`);
+    // console.log('3 :' + isDataStored);
     return (
       <>
         {/* <AppTitle showLabel={(weatherInfo || error) && true}>Weather appp</AppTitle> */}
-        <AppTitle showLabel={weatherInfo || error}>Weather app</AppTitle>
+        {/* <AppTitle showLabel={weatherInfo || error || isDataStored} onClick={localStorage.clear()}> */}
+        <AppTitle showLabel={weatherInfo || error || isDataStored}>Weather app</AppTitle>
 
         <WeatherWrapper>
-          <AppTitle secondary showResult={weatherInfo || error}>
-            Weather App
-          </AppTitle>
-          <SearchCity
-            value={value}
-            showResult={weatherInfo || error}
-            change={this.handleInputChange}
-            submit={this.handleSearchCity}
-          />
+          {!isDataStored && (
+            <AppTitle secondary showResult={weatherInfo || error}>
+              Weather App
+            </AppTitle>
+          )}
+          {
+            <SearchCity
+              value={value}
+              showResult={error || localWeatherData.length !== 0}
+              change={this.handleInputChange}
+              submit={this.handleSearchCity}
+            />
+          }
           {(weatherInfo || isDataStored) && <Result weather={weatherInfo || localWeatherData} />}
           {error && <NotFound error={error} />}
         </WeatherWrapper>

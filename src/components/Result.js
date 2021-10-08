@@ -9,10 +9,15 @@ import {
   faSnowflake,
   faSun,
   faSmog,
+  faClock,
+  faBell,
+  faCalendarAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
 import device from '../responsive/Device';
-import ForecastHour from './ForecastHour';
+import { ForecastMinutes } from './ForecastMinutes';
+import { ForecastHours } from './ForecastHours';
+import { ForecastDays } from './ForecastDays';
 import ResultFadeIn from './ResultFadeIn';
 import BigLabel from './BigLabel';
 import MediumLabel from './MediumLabel';
@@ -28,11 +33,14 @@ const Results = styled.div`
   visibility: hidden;
   position: relative;
   top: 20px;
-  animation: ${ResultFadeIn} 0.5s 1.4s forwards;
+  animation: ${ResultFadeIn} 1.5s 0.3s forwards;
 `;
 
 const LocationWrapper = styled.div`
   flex-basis: 100%;
+  &:hover {
+    transform: translateX(20px);
+  }
 `;
 
 const CurrentWeatherWrapper = styled.div`
@@ -106,6 +114,9 @@ const WeatherDetailsWrapper = styled.div`
 const WeatherDetail = styled.div`
   flex-basis: calc(100% / 3);
   padding: 10px;
+  &:hover {
+    transform: translateY(-10px);
+  }
   @media ${device.laptop} {
     padding: 20px 10px;
   }
@@ -122,10 +133,20 @@ const Forecast = styled.div`
   display: flex;
   overflow-x: scroll;
   overflow-y: hidden;
-  scrollbar-color: lightgray #ffffff;
-  scrollbar-width: auto;
   margin-top: 20px;
   padding-bottom: 20px;
+  &::-webkit-scrollbar {
+    overflow-x: hidden;
+    background: rgba(255, 255, 255, 0);
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:active {
+    background: rgba(255, 255, 255, 0.7);
+  }
   @media ${device.laptop} {
     order: 4;
   }
@@ -148,18 +169,42 @@ const Result = ({ weather }) => {
     feelsLikeTemp,
     pressure,
     visibility,
-    forecast,
-    time,
+    //time,
+    forecastMinutely,
+    forecastHourly,
+    forecastDaily,
   } = weather;
 
-  const forecasts = forecast.map(item => (
-    <ForecastHour
+  // const forecasts = forecast.map(item => (
+  //   <ForecastHour
+  //     key={item.dt}
+  //     temp={Math.round(item.main.temp)}
+  //     icon={item.weather[0].icon}
+  //     month={item.dt_txt.slice(5, 7)}
+  //     day={item.dt_txt.slice(8, 10)}
+  //     hour={item.dt_txt.slice(11, 13) * 1}
+  //   />
+  // ));
+
+  const forecastsMinutely = forecastMinutely.map(item => (
+    <ForecastMinutes key={item.dt} dt={item.dt} precipitation={item.precipitation} />
+  ));
+
+  const forecastsHourly = forecastHourly.map(item => (
+    <ForecastHours
       key={item.dt}
-      temp={Math.floor(item.main.temp * 1) / 1}
+      dt={item.dt}
+      temp={Math.round(item.temp)}
       icon={item.weather[0].icon}
-      month={item.dt_txt.slice(5, 7)}
-      day={item.dt_txt.slice(8, 10)}
-      hour={item.dt_txt.slice(11, 13) * 1}
+    />
+  ));
+
+  const forecastsDaily = forecastDaily.map(item => (
+    <ForecastDays
+      key={item.dt}
+      dt={item.dt}
+      temp={Math.round(item.temp.day)}
+      icon={item.weather[0].icon}
     />
   ));
 
@@ -175,17 +220,54 @@ const Result = ({ weather }) => {
     Atmosphere: faSmog,
   };
 
-  weatherIcon = <FontAwesomeIcon icon={weatherList[main]} />;
+  weatherIcon = weatherList[main] ? (
+    <FontAwesomeIcon icon={weatherList[main]} />
+  ) : (
+    <FontAwesomeIcon icon={weatherList['Atmosphere']} />
+  );
+
+  const IconChange = () => {
+    switch (main) {
+      case 'Clear':
+        document.body.setAttribute('class', '');
+        document.body.classList.add('clear');
+        break;
+      case 'ThunderStorm':
+        document.body.setAttribute('class', '');
+        document.body.classList.add('thunderstorm');
+        break;
+      case 'Drizzle':
+        document.body.setAttribute('class', '');
+        document.body.classList.add('drizzle');
+        break;
+      case 'Rain':
+        document.body.setAttribute('class', '');
+        document.body.classList.add('rain');
+        break;
+      case 'Snow':
+        document.body.setAttribute('class', '');
+        document.body.classList.add('snow');
+        break;
+      case 'Clouds':
+        document.body.setAttribute('class', '');
+        document.body.classList.add('clouds');
+        break;
+      default:
+        document.body.setAttribute('class', '');
+        document.body.classList.add('atmosphere');
+        break;
+    }
+  };
 
   return (
     <Results>
+      {IconChange()}
       <LocationWrapper>
         <BigLabel>
-          {city}, {country}, {time}
+          {city}, {country} {/*time*/}
         </BigLabel>
         <SmallLabel weight="400">{date}</SmallLabel>
       </LocationWrapper>
-
       <CurrentWeatherWrapper>
         <WeatherIcon>{weatherIcon}</WeatherIcon>
         <TemperatureWrapper>
@@ -195,7 +277,6 @@ const Result = ({ weather }) => {
           </SmallLabel>
         </TemperatureWrapper>
       </CurrentWeatherWrapper>
-
       <WeatherDetailsWrapper>
         <WeatherDetail>
           <SmallLabel align="center" weight="400">
@@ -252,10 +333,27 @@ const Result = ({ weather }) => {
           <Text align="center">Visibility</Text>
         </WeatherDetail>
       </WeatherDetailsWrapper>
-
-      <ForecastWrapper>
+      {/* <ForecastWrapper>
         <MediumLabel weight="400">Forecast</MediumLabel>
         <Forecast>{forecasts}</Forecast>
+      </ForecastWrapper> */}
+      <ForecastWrapper>
+        <MediumLabel weight="600">
+          <FontAwesomeIcon icon={faBell} /> Minutely Forecast (Precipitation)
+        </MediumLabel>
+        <Forecast>{forecastsMinutely}</Forecast>
+      </ForecastWrapper>
+      <ForecastWrapper>
+        <MediumLabel weight="600">
+          <FontAwesomeIcon icon={faClock} /> Hourly Forecast
+        </MediumLabel>
+        <Forecast>{forecastsHourly}</Forecast>
+      </ForecastWrapper>
+      <ForecastWrapper>
+        <MediumLabel weight="600">
+          <FontAwesomeIcon icon={faCalendarAlt} /> Daily Forecast
+        </MediumLabel>
+        <Forecast>{forecastsDaily}</Forecast>
       </ForecastWrapper>
     </Results>
   );

@@ -1,15 +1,12 @@
 *
-  box-sizing: border-box  
+  box-sizing: border-box
   padding: 0
-  margin: 0  
+  margin: 0
   font-family: 'Montserrat', sans-serif
 
 body
   min-height: 100vh
   margin: 0 15px
-  position: relative
-  @media (min-width: 768px)
-    margin: 0 20px
 
   &:before
     content: ""
@@ -18,18 +15,52 @@ body
     left: 0
     height: 100%
     width: 100%
-    background-image: url('./assets/2850815.jpg')
+    background-image: url('./assets/main.jpg')
     background-repeat: no-repeat
-    background-position: center
     background-size: cover
+    background-position: center
+  @media (min-width: 768px)
+    margin: 0 20px
 
+.clear:before
+  transition: 1s
+  transition-delay: 0.4s
+  background-image: url('./assets/clear.jpg')
 
+.thunderstorm:before
+  transition: 1s
+  transition-delay: 0.4s
+  background-image: url('./assets/thunderstorm.jpg')
+
+.drizzle:before
+  transition: 1s
+  transition-delay: 0.4s
+  background-image: url('./assets/drizzle.jpg')
+
+.rain:before
+  transition: 1s
+  transition-delay: 0.4s
+  background-image: url('./assets/rain.jpg')
+
+.snow:before
+  transition: 1s
+  transition-delay: 0.4s
+  background-image: url('./assets/snow.jpg')
+
+.clouds:before
+  transition: 1s
+  transition-delay: 0.4s
+  background-image: url('./assets/clouds.jpg')
+
+.atmosphere:before
+  transition: 1s
+  transition-delay: 0.4s
+  background-image: url('./assets/atmosphere.jpg')
+
+h1
+  font-family: 'Gluten', cursive
 
 .weather-app
   height: 100%
   margin: 0 auto
   position: relative
-
-
-
-  
