@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import uuid from 'react-uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCloud,
@@ -12,12 +13,14 @@ import {
   faClock,
   faBell,
   faCalendarAlt,
+  faExclamationTriangle,
 } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
 import device from '../responsive/Device';
 import { ForecastMinutes } from './ForecastMinutes';
 import { ForecastHours } from './ForecastHours';
 import { ForecastDays } from './ForecastDays';
+import { AlertIsNull, AlertContent } from './Alert';
 import ResultFadeIn from './ResultFadeIn';
 import BigLabel from './BigLabel';
 import MediumLabel from './MediumLabel';
@@ -39,7 +42,10 @@ const Results = styled.div`
 const LocationWrapper = styled.div`
   flex-basis: 100%;
   &:hover {
+    transition-property: transform;
     transform: translateX(20px);
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in-out;
   }
 `;
 
@@ -115,7 +121,10 @@ const WeatherDetail = styled.div`
   flex-basis: calc(100% / 3);
   padding: 10px;
   &:hover {
+    transition-property: transform;
     transform: translateY(-10px);
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
   }
   @media ${device.laptop} {
     padding: 20px 10px;
@@ -152,8 +161,33 @@ const Forecast = styled.div`
   }
 `;
 
+export const AlertsLabel = styled.h3`
+  color: ${({ color }) => color || '#FFFFFF'};
+  display: block;
+  font-weight: ${({ weight }) => weight || '600'};
+  font-size: ${({ fontSize }) => fontSize || '20px'};
+  text-align: ${({ align }) => align || 'left'};
+  padding: 5px 0;
+  @media ${device.mobileS} {
+    font-size: 15px;
+  }
+  @media ${device.mobileM} {
+    font-size: 17px;
+  }
+  @media ${device.tablet} {
+    font-size: 20px;
+  }
+  @media ${device.laptop} {
+    font-size: 25px;
+  }
+  @media ${device.laptopL} {
+    font-size: 30px;
+  }
+`;
+
 const Result = ({ weather }) => {
   const {
+    address,
     city,
     country,
     date,
@@ -173,18 +207,8 @@ const Result = ({ weather }) => {
     forecastMinutely,
     forecastHourly,
     forecastDaily,
+    alerts,
   } = weather;
-
-  // const forecasts = forecast.map(item => (
-  //   <ForecastHour
-  //     key={item.dt}
-  //     temp={Math.round(item.main.temp)}
-  //     icon={item.weather[0].icon}
-  //     month={item.dt_txt.slice(5, 7)}
-  //     day={item.dt_txt.slice(8, 10)}
-  //     hour={item.dt_txt.slice(11, 13) * 1}
-  //   />
-  // ));
 
   const forecastsMinutely = forecastMinutely.map(item => (
     <ForecastMinutes key={item.dt} dt={item.dt} precipitation={item.precipitation} />
@@ -226,7 +250,7 @@ const Result = ({ weather }) => {
     <FontAwesomeIcon icon={weatherList['Atmosphere']} />
   );
 
-  const IconChange = () => {
+  const backgroundChange = () => {
     switch (main) {
       case 'Clear':
         document.body.setAttribute('class', '');
@@ -259,9 +283,27 @@ const Result = ({ weather }) => {
     }
   };
 
+  let alertInfo;
+  const showAlert = () => {
+    alerts !== undefined
+      ? (alertInfo = alerts.map(item => (
+          <AlertContent
+            address={address}
+            key={uuid()}
+            description={item.description}
+            sender={item.sender_name}
+            start={item.start}
+            end={item.end}
+            type={item.event}
+          />
+        )))
+      : (alertInfo = <AlertIsNull />);
+  };
+
   return (
     <Results>
-      {IconChange()}
+      {backgroundChange()}
+      {showAlert()}
       <LocationWrapper>
         <BigLabel>
           {city}, {country} {/*time*/}
@@ -333,10 +375,6 @@ const Result = ({ weather }) => {
           <Text align="center">Visibility</Text>
         </WeatherDetail>
       </WeatherDetailsWrapper>
-      {/* <ForecastWrapper>
-        <MediumLabel weight="400">Forecast</MediumLabel>
-        <Forecast>{forecasts}</Forecast>
-      </ForecastWrapper> */}
       <ForecastWrapper>
         <MediumLabel weight="600">
           <FontAwesomeIcon icon={faBell} /> Minutely Forecast (Precipitation)
@@ -354,6 +392,13 @@ const Result = ({ weather }) => {
           <FontAwesomeIcon icon={faCalendarAlt} /> Daily Forecast
         </MediumLabel>
         <Forecast>{forecastsDaily}</Forecast>
+      </ForecastWrapper>
+      <ForecastWrapper>
+        <AlertsLabel>
+          <FontAwesomeIcon icon={faExclamationTriangle} />
+          &nbsp;&nbsp;Alerts
+        </AlertsLabel>
+        <Forecast>{alertInfo}</Forecast>
       </ForecastWrapper>
     </Results>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
 import SearchCity from './SearchCity';
@@ -18,8 +18,8 @@ const AppTitle = styled.h1`
   transition: 0.4s 1.4s;
   opacity: ${({ showLabel }) => (showLabel ? 1 : 0)};
 
-  ${({ secondary }) =>
-    secondary &&
+  ${({ searchTitle }) =>
+    searchTitle &&
     `
     opacity: 1;
     height: auto;
@@ -29,6 +29,10 @@ const AppTitle = styled.h1`
     top: 20%;
     text-align: center;
     transition: .5s;
+
+    &:hover {
+      transform: scale(1.1);
+    }
     @media ${device.tablet} {
       font-size: 40px;
     }
@@ -61,7 +65,7 @@ const WeatherWrapper = styled.div`
   position: relative;
 `;
 
-class App extends React.Component {
+class App extends Component {
   state = {
     // isDataStored: false,
     value: '',
@@ -86,13 +90,16 @@ class App extends React.Component {
     const getLocation = `https://maps.googleapis.com/maps/api/geocode/json?address=${value}&key=${geocodingAPIkey}`;
 
     const APIkey = 'fff52b3fc3996aa9a6cd2f21aeea9a58';
+    // const APIkey = '638d3030eafa245040554df387be8a9c';
     const weather = `https://api.openweathermap.org/data/2.5/weather?q=${value}&APPID=${APIkey}&units=metric`;
-    const forecast = `https://api.openweathermap.org/data/2.5/forecast?q=${value}&APPID=${APIkey}&units=metric`;
+    // const forecast = `https://api.openweathermap.org/data/2.5/forecast?q=${value}&APPID=${APIkey}&units=metric`;
 
     axios
-      .all([axios.get(weather), axios.get(getLocation), axios.get(forecast)])
+      .all([axios.get(weather), axios.get(getLocation)])
       .then(
-        axios.spread((resCurrent, resLocation, res3) => {
+        axios.spread((resCurrent, resLocation) => {
+          // console.log('resCurrent', resCurrent);
+          // console.log('resLocation', resLocation);
           const months = [
             'January',
             'February',
@@ -117,8 +124,6 @@ class App extends React.Component {
             'Saturday',
           ];
           const currentDate = new Date();
-          // console.log(resCurrent);
-          // console.log(resLocation);
           const date = `${days[currentDate.getDay()]} ${currentDate.getDate()} ${
             months[currentDate.getMonth()]
           }`;
@@ -129,9 +134,15 @@ class App extends React.Component {
 
           const lat = resLocation.data.results[0].geometry.location.lat;
           const lng = resLocation.data.results[0].geometry.location.lng;
+          const address = resLocation.data.results[0].formatted_address;
+          // console.log('lat', lat);
+          // console.log('lng', lng);
+
           const getWeather = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&appid=${APIkey}&units=metric`;
           axios.get(getWeather).then(resForecast => {
+            // console.log('resForecast', resForecast);
             const weatherInfo = {
+              address,
               city: resCurrent.data.name,
               country: resCurrent.data.sys.country,
               date,
@@ -149,10 +160,11 @@ class App extends React.Component {
               wind: resCurrent.data.wind.speed,
               pressure: resCurrent.data.main.pressure,
               visibility: resCurrent.data.visibility,
-              forecast: res3.data.list,
+              // forecast: res3.data.list,
               forecastMinutely: resForecast.data.minutely,
               forecastHourly: resForecast.data.hourly,
               forecastDaily: resForecast.data.daily,
+              alerts: resForecast.data.alerts,
               //time,
             };
             // console.log('???', weatherInfo);
@@ -203,7 +215,7 @@ class App extends React.Component {
 
         <WeatherWrapper>
           {!isDataStored && (
-            <AppTitle secondary showResult={weatherInfo || error}>
+            <AppTitle searchTitle showResult={weatherInfo || error}>
               Weather App
             </AppTitle>
           )}

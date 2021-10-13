@@ -14,7 +14,10 @@ const ForecastWrapper = styled.div`
   border-radius: 5px;
   background-color: rgba(255, 255, 255, 0.2);
   &:hover {
+    transition-property: transform;
     transform: translateY(-10px);
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
   }
   @media ${device.tablet} {
     flex-basis: 110px;
