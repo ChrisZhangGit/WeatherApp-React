@@ -1,5 +1,5 @@
 {
-  "homepage": "https://rawfour.github.io/weather-app-react/",
+  "homepage": "https://ChrisZhangGit.github.io/weather-app-react",
   "name": "weather-app",
   "version": "0.1.0",
   "private": true,
@@ -11,7 +11,6 @@
     "@testing-library/react": "^9.4.0",
     "@testing-library/user-event": "^7.2.1",
     "axios": "^0.21.4",
-    "gh-pages": "^2.2.0",
     "node-sass": "^4.13.0",
     "prop-types": "^15.7.2",
     "react": "^16.12.0",
@@ -51,6 +50,7 @@
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.14.3",
     "eslint-plugin-react-hooks": "^1.7.0",
+    "gh-pages": "^2.2.0",
     "husky": "^4.2.3",
     "lint-staged": "^10.0.7",
     "prettier": "1.19.1"
